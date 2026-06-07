@@ -6,7 +6,7 @@ Main FastAPI application entry point.
 from typing import Dict, Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.cors import CORSMiddleware
+
 
 # Import routes
 from app.routes import game, negotiation, config
@@ -16,14 +16,6 @@ from app.services.ai_service import openai_client, deepseek_client, ai_provider
 from app.services.config_service import load_negotiation_config
 
 app = FastAPI(title="Fashion Supply Chain", version="0.1.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,10 +44,16 @@ def root() -> Dict[str, str]:
         Called when accessing the root URL of the API.
         Provides basic API discovery information.
     """
-    return {"message": "Backend root. Try /health"}
+    return {"message": "Backend root. Try /health or /api/health"}
+
+
+@app.get("/api")
+def api_root() -> Dict[str, str]:
+    return root()
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health_check() -> Dict[str, str]:
     """
     Health check endpoint to verify the backend is running.
@@ -81,6 +79,7 @@ def health_check() -> Dict[str, str]:
 
 
 @app.get("/ai/status")
+@app.get("/api/ai/status")
 def ai_status_check() -> Dict[str, Any]:
     """
     Checks the status and connectivity of AI providers (OpenAI and DeepSeek).
@@ -228,6 +227,9 @@ def ai_status_check() -> Dict[str, Any]:
 app.include_router(game.router)
 app.include_router(negotiation.router)
 app.include_router(config.router)
+app.include_router(game.router, prefix="/api")
+app.include_router(negotiation.router, prefix="/api")
+app.include_router(config.router, prefix="/api")
 
 # Load config on startup
 load_negotiation_config()
