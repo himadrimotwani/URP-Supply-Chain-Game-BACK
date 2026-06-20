@@ -15,6 +15,27 @@ from typing import List, Dict, Any
 
 
 # ============================================================================
+# Participant / Data Collection Schemas
+# ============================================================================
+
+class ParticipantCreateRequest(BaseModel):
+    """
+    Information collected before a player can access the game.
+    """
+    name: str
+    email: str | None = None
+    student_id: str | None = None
+    section: str | None = None
+
+
+class ParticipantCreateResponse(BaseModel):
+    """
+    Response after storing a participant record.
+    """
+    participant_id: str
+
+
+# ============================================================================
 # Configuration Schemas
 # ============================================================================
 
@@ -527,6 +548,7 @@ class GameStartRequest(BaseModel):
     """
     rounds: int = 50
     demand_method: str = "bootstrap"
+    participant_id: str | None = None
 
 
 class NegotiateRequest(BaseModel):

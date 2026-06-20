@@ -31,6 +31,7 @@ from app.services.game_service import (
     to_contract_data,
 )
 from app.services.game_service import SESSIONS
+from app.services.storage_service import log_round_record
 
 router = APIRouter()
 
@@ -92,6 +93,7 @@ def start_game(request: GameStartRequest) -> GameStartResponse:
         cumulative_supplier_profit=0.0,
         historical_demands=history,
         method=request.demand_method,
+        participant_id=request.participant_id,
         negotiation_chat_history=[],
         negotiation_draft_contract=None,
     )
@@ -197,6 +199,14 @@ def place_order(request: OrderRequest) -> OrderResponse:
     )
 
     SESSIONS[session_id] = new_state
+
+    if new_state.round_summaries:
+        log_round_record(
+            participant_id=new_state.participant_id,
+            session_id=session_id,
+            round_summary=new_state.round_summaries[-1],
+            round_output=round_output,
+        )
 
     return OrderResponse(
         state=to_game_state_response(session_id, new_state),
@@ -393,4 +403,3 @@ def end_game_early(request: GameStateRequest) -> Dict[str, Any]:
         "message": "Game ended early. Summary is now available.",
         "state": to_game_state_response(session_id, state)
     }
-
